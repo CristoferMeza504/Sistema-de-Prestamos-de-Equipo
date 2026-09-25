@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="PrestamosEquipos.API/PrestamosEquipos.API.csproj" />
+  <Project Path="PrestamosEquipos.Application/PrestamosEquipos.Application.csproj" />
+  <Project Path="PrestamosEquipos.Domain/PrestamosEquipos.Domain.csproj" />
+  <Project Path="PrestamosEquipos.Infrastructure/PrestamosEquipos.Infrastructure.csproj" />
+</Solution>
