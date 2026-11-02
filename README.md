@@ -4,6 +4,8 @@ Sistema web para gestionar el préstamo y devolución de equipos dentro de una o
 
 El proyecto permite registrar usuarios y equipos, controlar los préstamos activos y mantener un historial de las devoluciones.
 
+Consulta las [instrucciones del backend](Backend/BACKEND.md) para ejecutarlo, conocer sus endpoints y verificar las reglas de negocio.
+
 ## Objetivo
 
 Desarrollar una aplicación pequeña pero completa que permita practicar el desarrollo **Full Stack** utilizando:
