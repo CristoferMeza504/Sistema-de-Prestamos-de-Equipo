@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Segoe UI', system-ui, sans-serif;
+  --color-ink: #142b35;
+  --color-canvas: #f4f7f7;
+  --color-brand: #087f75;
+}
+
+@layer base {
+  body { margin: 0; min-width: 320px; background: var(--color-canvas); color: var(--color-ink); }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button:focus-visible, a:focus-visible { outline: 3px solid #2dd4bf; outline-offset: 4px; }
+  ::selection { background: #b9eee3; color: #142b35; }
+}

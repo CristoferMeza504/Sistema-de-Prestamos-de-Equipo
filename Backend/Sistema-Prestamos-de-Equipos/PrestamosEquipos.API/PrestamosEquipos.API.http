@@ -1,6 +1,172 @@
 @PrestamosEquipos.API_HostAddress = http://localhost:5024
+# Sustituye estos identificadores por los devueltos al crear tus datos de prueba.
+@equipoId = 0
+@usuarioId = 0
+@prestamoId = 0
 
-GET {{PrestamosEquipos.API_HostAddress}}/weatherforecast/
+# Consultar equipos: 200 OK
+GET {{PrestamosEquipos.API_HostAddress}}/api/equipos
 Accept: application/json
+
+###
+
+# Consultar equipo por Id: 200 o 404
+GET {{PrestamosEquipos.API_HostAddress}}/api/equipos/{{equipoId}}
+Accept: application/json
+
+###
+
+# Disponibilidad: 200
+GET {{PrestamosEquipos.API_HostAddress}}/api/equipos?estado=Disponible
+Accept: application/json
+
+###
+
+# Actualizar equipo: 204 (un equipo con préstamo activo debe conservar Prestado)
+PUT {{PrestamosEquipos.API_HostAddress}}/api/equipos/{{equipoId}}
+Content-Type: application/json
+
+{
+  "nombre": "Proyector actualizado",
+  "tipo": "Proyector",
+  "estado": "Disponible"
+}
+
+###
+
+# Eliminar equipo sin historial: 204; con historial: 409; inexistente: 404
+DELETE {{PrestamosEquipos.API_HostAddress}}/api/equipos/{{equipoId}}
+
+###
+
+# Crear usuario: 201; correo duplicado: 409
+POST {{PrestamosEquipos.API_HostAddress}}/api/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Usuario de prueba",
+  "correo": "usuario.prueba@example.com"
+}
+
+###
+
+# Consultar usuarios: 200
+GET {{PrestamosEquipos.API_HostAddress}}/api/usuarios
+Accept: application/json
+
+###
+
+# Consultar usuario individual: 200 o 404
+GET {{PrestamosEquipos.API_HostAddress}}/api/usuarios/{{usuarioId}}
+Accept: application/json
+
+###
+
+# Actualizar usuario: 204
+PUT {{PrestamosEquipos.API_HostAddress}}/api/usuarios/{{usuarioId}}
+Content-Type: application/json
+
+{
+  "nombre": "Usuario actualizado",
+  "correo": "usuario.actualizado@example.com"
+}
+
+###
+
+# Rechazar actualización inválida: 400
+PUT {{PrestamosEquipos.API_HostAddress}}/api/usuarios/{{usuarioId}}
+Content-Type: application/json
+
+{
+  "nombre": "",
+  "correo": "correo-invalido"
+}
+
+###
+
+# Eliminar usuario sin historial: 204; con historial: 409
+DELETE {{PrestamosEquipos.API_HostAddress}}/api/usuarios/{{usuarioId}}
+
+###
+
+# Registrar préstamo: 201. El servidor asigna fechas y estado.
+POST {{PrestamosEquipos.API_HostAddress}}/api/prestamos
+Content-Type: application/json
+
+{
+  "usuarioId": {{usuarioId}},
+  "equipoId": {{equipoId}}
+}
+
+###
+
+# Historial completo: 200
+GET {{PrestamosEquipos.API_HostAddress}}/api/prestamos
+Accept: application/json
+
+###
+
+# Filtrar activos de un usuario: 200
+GET {{PrestamosEquipos.API_HostAddress}}/api/prestamos?usuarioId={{usuarioId}}&estado=Activo
+Accept: application/json
+
+###
+
+# Filtrar historial por equipo: 200
+GET {{PrestamosEquipos.API_HostAddress}}/api/prestamos?equipoId={{equipoId}}&estado=Devuelto
+Accept: application/json
+
+###
+
+# Consultar préstamo: 200 o 404; incluye fechaLimite y fechaDevolucion real
+GET {{PrestamosEquipos.API_HostAddress}}/api/prestamos/{{prestamoId}}
+Accept: application/json
+
+###
+
+# Devolver: 204; devolución repetida: 409; inexistente: 404
+POST {{PrestamosEquipos.API_HostAddress}}/api/prestamos/{{prestamoId}}/devolucion
+
+###
+
+# Recurso inexistente: 404
+GET {{PrestamosEquipos.API_HostAddress}}/api/equipos/2147483647
+Accept: application/json
+
+###
+
+# Actualización de equipo inválida: 400
+PUT {{PrestamosEquipos.API_HostAddress}}/api/equipos/{{equipoId}}
+Content-Type: application/json
+
+{
+  "nombre": "",
+  "tipo": "Proyector",
+  "estado": "Desconocido"
+}
+
+###
+
+# Crear equipo: 201 Created
+POST {{PrestamosEquipos.API_HostAddress}}/api/equipos
+Content-Type: application/json
+
+{
+  "nombre": "Proyector de laboratorio",
+  "tipo": "Proyector",
+  "estado": "Disponible"
+}
+
+###
+
+# Rechazar datos inválidos: 400 Bad Request
+POST {{PrestamosEquipos.API_HostAddress}}/api/equipos
+Content-Type: application/json
+
+{
+  "nombre": "   ",
+  "tipo": "Proyector",
+  "estado": "Disponible"
+}
 
 ###

@@ -1,42 +1,56 @@
-# Visual Studio
+# Visual Studio / .NET
 .vs/
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
-
-# Build
 [Bb]in/
 [Oo]bj/
 
-# NuGet
+# NuGet: paquetes descargados y paquetes generados
 packages/
 *.nupkg
 *.snupkg
 
-# ASP.NET Core
+# Configuración local de ASP.NET Core
 appsettings.Development.json
+appsettings.Local.json
 
-# Environment variables / secrets
+# Variables de entorno: conservar las plantillas sin credenciales
 .env
 .env.*
+*.env
 !.env.example
+!.env.*.example
+!example.env
+!.example.env
 
-# Logs
+# Resultados de pruebas y cobertura
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Registros y archivos temporales
+logs/
 *.log
+*.tmp
+*.bak
+*.swp
+*.swo
 
-# OS
+# Configuración local de Docker
+docker-compose.override.yml
+docker-compose.override.yaml
+compose.override.yml
+compose.override.yaml
+
+# Editores y herramientas locales
+.idea/
+.vscode/
+.kilo/
+
+# Sistema operativo
 .DS_Store
 Thumbs.db
-
-# Docker
-docker-compose.override.yml
-
-# Rider
-.idea/
-
-# VS Code
-.vscode/
-
-#KiloCode
-.kilo
+Desktop.ini

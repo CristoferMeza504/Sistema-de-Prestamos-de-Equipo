@@ -1,0 +1,12 @@
+# Dependencias y compilación
+node_modules/
+dist/
+dist-ssr/
+
+# Cachés de Vite, ESLint y TypeScript
+.vite/
+.eslintcache
+*.tsbuildinfo
+
+# Configuración local (los .env se cubren en el .gitignore raíz)
+*.local
