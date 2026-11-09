@@ -508,3 +508,253 @@ Esta sección actualiza los pendientes de las evaluaciones anteriores. El usuari
 - Se preservan las plantillas .env.example, .env.*.example, example.env y .example.env. .env reales permanecen excluidos. Esto no certifica el contenido de las plantillas ni constituye una auditoría del historial.
 - Verificado con git check-ignore --no-index: 14 rutas de archivos locales/generados excluidas y 14 rutas de código/configuración/documentación conservadas, incluidas migraciones, solución, pnpm-lock.yaml y seguimiento. git ls-files -ci --exclude-standard no encontró archivos ya rastreados que ahora deban excluirse.
 - No se retiraron archivos del índice, no se crearon commits ni se publicó en GitHub.
+
+## Clase 13 — Estado reactivo y ciclo de vida: useState y useEffect — 2026-11-06
+
+Material completo recibido en Texto pegado.txt. Conceptos: variables locales frente a estado conservado entre renders y persistencia en PostgreSQL; actualización mediante setters; montaje/actualización/desmontaje; efectos y dependencias; limpieza de temporizadores; listado dinámico y búsqueda controlada.
+
+Práctica indispensable de la guía:
+
+1. Exportar la interfaz de props de la tarjeta para reutilizarla en App con import type.
+2. Crear tres estados en App: colección tipada inicialmente vacía, cargando inicialmente true y busqueda inicialmente vacía.
+3. Usar useEffect con [] y setTimeout de 1200 ms para cargar seis registros manuales y terminar la carga. Retornar clearTimeout como limpieza. Todavía sin HTTP ni consulta a PostgreSQL.
+4. Calcular el listado filtrado mediante filter/includes sobre el nombre, sin distinguir mayúsculas. No guardar el resultado derivado como otro estado ni agregar un efecto para filtrar.
+5. Añadir input controlado con value y onChange, contadores calculados con length, representación condicional de carga y tarjetas generadas mediante map con key estable basada en id.
+
+Evaluación del código actual:
+
+- App sigue presentando tres EquipoCard explícitas y un contador fijo 03. No importa useState/useEffect ni tiene buscador, carga simulada o listado mediante map.
+- EquipoCard ya recibe id/nombre/tipo/estado, pero EquipoCardProps aún no se exporta. main.tsx conserva StrictMode.
+- La práctica central de clase 13 está pendiente. Recibir el material autoriza analizarlo y documentarlo, no modificar código automáticamente.
+
+Adaptación propuesta cuando se autorice implementar:
+
+- Exportar EquipoCardProps y reutilizarlo en useState<EquipoCardProps[]>([]), conservando el contrato y la presentación de EquipoCard.
+- Mantener el diseño de clase 12 y reemplazar las tres etiquetas manuales por seis equipos de ejemplo cargados tras 1200 ms; no inventar campos del modelo ni llamar a la API en esta clase.
+- Buscar por nombre, mostrar la cantidad filtrada/total y reemplazar el contador fijo por datos derivados. Mantener key={equipo.id}; key no se recibe como prop en el hijo.
+- Mensajes visibles orientados al uso: Cargando equipos y No se encontraron equipos cuando corresponda. No copiar explicaciones sobre Heap/Fiber, Vuelta 1, estado en memoria, simulación ni futuras etapas en la interfaz: respetar la preferencia permanente del usuario.
+- Conservar botones pendientes deshabilitados, el enlace de inicio móvil y la paleta actual. No añadir autenticación, rutas, CRUD frontend, otras librerías ni persistencia local para esta práctica.
+
+Precisiones para explicar correctamente el material:
+
+- El estado es privado de cada instancia de componente y React lo asocia a su posición en el árbol; la analogía del almacén global no significa que useState sea estado global compartido. La recarga de página reinicia este estado mientras no se rehidrate desde otra fuente. Fuente: https://react.dev/learn/state-a-components-memory.
+- Las variables locales se vuelven a calcular al ejecutar el componente; afirmar que todos los let viven necesariamente en Stack y que el recolector los elimina al return simplifica en exceso JavaScript (por ejemplo, existen cierres). No convertir ese detalle de implementación en requisito del proyecto.
+- useEffect con [] no debe explicarse como garantía absoluta de una sola ejecución: con StrictMode hay un ciclo adicional de setup/cleanup en desarrollo. Mantener la limpieza del temporizador y StrictMode; no retirarlo para esconder este comportamiento. Fuente: https://react.dev/reference/react/useEffect.
+- Omitir dependencias hace que el efecto se ejecute después de cada commit; un bucle depende de las actualizaciones que provoque, no de la mera ausencia de [].
+- Al filtrar se retiran las tarjetas excluidas del árbol; key permite identificar las que permanecen, sin garantizar que React se limite a ocultar nodos. La limpieza cancela el temporizador pendiente, no representa por sí misma una gestión manual de toda la RAM.
+
+En este turno solo se revisó el material, App, EquipoCard, main.tsx y configuración TypeScript; se actualizó este seguimiento. No se modificó código ni se ejecutaron pruebas de implementación.
+
+## Decisión de avance del curso — 2026-11-06
+
+- El usuario indicó posponer la implementación de código hasta haber revisado la clase 17. Hasta entonces, recibir las clases, estudiar con detalle sus ejemplos y actualizar este seguimiento con conceptos, contratos, estructura, secuencia de implementación y adaptaciones necesarias al proyecto.
+- La clase 13 queda analizada y pendiente de implementación; continuar con las clases 14 a 17 sin programarlas al recibirlas. No interpretar la entrega de material como una orden de implementar. Al llegar a la 17, reunir lo estudiado para definir la implementación conforme a las indicaciones del usuario.
+- Revisar cuidadosamente el código de ejemplo de cada clase y conservar los detalles indispensables para usarlo como molde, adaptando entidades, nombres y capacidades al Sistema de Préstamos de Equipo. Evitar copiar particularidades de HabitForge o introducir conceptos fuera de lo estudiado.
+- Si el material deja dudas o falta un detalle necesario para entender el enfoque enseñado, hacerlo saber al usuario y pedir la parte correspondiente, sin inventarla.
+
+## Clase 14 — Simetría arquitectónica y Vertical Slicing en React — 2026-11-06
+
+Material completo recibido en Texto pegado.txt. Se revisaron todos los ejemplos: contrato separado, servicio Promise con datos simulados, tarjeta, vista del catálogo, layout con children y App reducido a composición. Solo análisis y documentación, según la decisión de esperar hasta la clase 17.
+
+Conceptos y molde de la guía:
+
+- Separar responsabilidades del componente raíz: App compone el layout y la vista; no concentra estado, carga de datos, búsqueda y navegación visual.
+- Organización por feature: features/habitos/api, components y types; layouts para la estructura compartida. La analogía con Program.cs, DTOs y repositorios del backend ayuda a separar responsabilidades, pero no convierte vistas React en controladores HTTP ni impone replicar todas las capas .NET.
+- types/habito.types.ts exporta interface HabitoGlobal; tanto servicio como tarjeta y vista usan import type. El contrato deja de vivir dentro de las props de la tarjeta, actualizando la solución intermedia de clase 13.
+- api/habitosApi.ts exporta obtenerHabitosGlobalesAsync(): Promise<HabitoGlobal[]> mediante new Promise(resolve => setTimeout(..., 1000)); el callback crea seis objetos y resuelve la colección. La clase 13 usaba 1200 ms: clase 14 traslada esa carga a un servicio y el ejemplo cambia la demora a 1000 ms.
+- CatalogoHabitosView conserva tres useState (colección, cargando y busqueda); useEffect llama al servicio y en .then actualiza colección y carga. Calcula filter por nombre sin distinguir mayúsculas, input controlado, contador filtrado/total, carga condicional y map con key=id. No extraer hooks personalizados ni añadir librerías para esta práctica.
+- AppLayout importa ReactNode con import type, define AppLayoutProps { children: ReactNode } y devuelve sidebar/cabecera y un main que contiene {children}.
+- App mantiene export default y solo importa y compone <AppLayout><CatalogoHabitosView /></AppLayout>. Los componentes hijos y funciones del servicio usan exportaciones nombradas. Mover la tarjeta y corregir importaciones; retirar la copia antigua solo después de verificar sus consumidores.
+
+Adaptación prevista al Sistema de Préstamos de Equipo:
+
+frontend/src/
+  features/equipos/
+    api/equiposApi.ts
+    components/CatalogoEquiposView.tsx
+    components/EquipoCard.tsx
+    components/EquipoIlustracion.tsx
+    types/equipo.types.ts
+  layouts/AppLayout.tsx
+  components/Icono.tsx
+  App.tsx
+  main.tsx
+  index.css
+
+- Exportar interface Equipo con id: number, nombre: string, tipo: string y estado: string, conforme al DTO público actual. Reutilizarla en la tarjeta, servicio y colección useState<Equipo[]>([]), sin duplicar el contrato dentro de EquipoCardProps.
+- equiposApi.ts ofrecería obtenerEquiposAsync(): Promise<Equipo[]>; inicialmente conserva los seis equipos simulados de la adaptación de clase 13. Al recibir clases 15–17, ajustar la implementación a su alcance final en vez de perpetuar simulaciones si se enseña la conexión real.
+- CatalogoEquiposView contendría título/acción, hero propio del catálogo, estados de carga/búsqueda, contadores y rejilla. AppLayout conservaría identidad, sidebar, cabecera móvil con enlace a /, contenedor main, enlace de salto y footer compartido. Asegurar id=catalogo en el destino del enlace de salto y no anidar main dentro de otro main.
+- EquipoIlustracion es específico de equipos y se mueve junto con la tarjeta; Icono tiene consumidores del layout y permanece compartido en src/components. No borrar src/components si aún contiene código compartido útil ni crear módulos vacíos de Usuarios/Préstamos por simetría.
+- Conservar diseño, utilidades Tailwind, React Compiler, acciones sin implementar deshabilitadas y preferencia de no mostrar comentarios de demo/desarrollo en pantalla. Sustituir textos técnicos del ejemplo (Vertical Slicing, Consultando capa de servicios, rutas .ts, etc.) por mensajes de usuario como Cargando equipos.
+- El contador total que estaba en el sidebar de clase 13 desaparece del layout de ejemplo de clase 14: mantener los contadores del catálogo dentro de su vista, sin duplicar la carga en AppLayout ni introducir estado global para conservar un badge.
+
+Observaciones para la implementación conjunta posterior:
+
+- El frontend actual sigue en la versión estática de clases 11–12: src/components contiene EquipoCard, EquipoIlustracion e Icono; no existen features ni layouts. Las clases 13 y 14 están documentadas, no implementadas.
+- La refactorización de clase 14 pretende preservar comportamiento y presentación; el número exacto de líneas de App no define por sí solo SRP. No aplicar literalmente la referencia del curso a .NET 9: nuestro backend continúa en .NET 10 según la decisión registrada.
+- El servicio de ejemplo resuelve siempre y la vista no tiene catch/finally ni limpieza del efecto; al implementar con las clases siguientes, revisar manejo de fallos y desmontaje/StrictMode. No perder la intención de limpieza aprendida en clase 13: al mover el temporizador, la vista ya no dispone de su identificador para clearTimeout. La estrategia concreta debe ajustarse a los ejemplos posteriores y evitar actualizaciones de cargas obsoletas.
+- api es una capa de acceso externo del frontend; cuando se conecte realmente, se comunicará por HTTP con la API .NET, no directamente con PostgreSQL. La separación de carpetas no constituye por sí sola DIP con contratos inyectables.
+- Separar archivos reduce colisiones de edición, pero no garantiza ausencia de conflictos de merge. La preparación del servicio permite aislar transporte; errores/cancelación/configuración podrían requerir cambios adicionales al incorporar la API.
+- No se modificó código/configuración ni se instalaron dependencias. No se ejecutaron pruebas porque solo se analizó material y se actualizó el seguimiento. Próximo material esperado: clase 15; implementación pospuesta hasta revisar la 17.
+
+## Clase 15 — CORS y consumo de API REST con Axios — 2026-11-06
+
+Material completo recibido en Texto pegado.txt. Se revisaron los ejemplos de variables Vite, instancia Axios, servicio GET, vista con errores, laboratorio CORS y configuración .NET con orígenes dinámicos y wildcard. Implementación pospuesta hasta revisar la clase 17.
+
+Molde del código de la clase:
+
+1. frontend/.env define VITE_API_BASE_URL con URL base que incluye /api. Instalar axios con pnpm al autorizar programar.
+2. features/habitos/api/habitosApi.ts importa axios y el contrato con import type. Exporta apiClient = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL, headers: { 'Content-Type': 'application/json' } }).
+3. Sustituye Promise/setTimeout por obtenerHabitosGlobalesAsync = async (): Promise<HabitoGlobal[]> => { const respuesta = await apiClient.get<HabitoGlobal[]>('/habitos'); return respuesta.data }. No conserva fallback simulado para esconder fallos de red.
+4. CatalogoHabitosView conserva colección/cargando/busqueda y agrega errorRed: string | null. useEffect llama al servicio: then carga colección y limpia error, catch registra diagnóstico y establece mensaje, finally termina carga tanto en éxito como en error. Renderiza carga, error o listado de forma excluyente; mantiene filter y map con key estable.
+5. El laboratorio propone observar primero el fallo CORS y luego autorizar el origen. Esto es un experimento didáctico, no una exigencia de quitar una política que el proyecto ya posee.
+6. Backend: Env.Load, lectura directa de CORS_ALLOWED_ORIGINS con Environment.GetEnvironmentVariable y excepción si falta; Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries); AddCors/AddPolicy con WithOrigins(origenes), SetIsOriginAllowedToAllowWildcardSubdomains(), AllowAnyHeader y AllowAnyMethod; UseCors antes de autorización/endpoints. Ejemplo de orígenes: localhost y https://*.unah.edu.hn. Reiniciar procesos para cargar nueva configuración.
+
+Estado contrastado con archivos del proyecto:
+
+- Program.cs YA registra AddCors con política Frontend, WithOrigins desde builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() y AllowAnyHeader/AllowAnyMethod. appsettings.json ya permite http://localhost:5173. UseCors("Frontend") está antes de UseAuthorization/MapControllers; hay UseHttpsRedirection antes de CORS. Se conserva el resto del pipeline, Scalar y manejo de excepciones.
+- No hay lectura propia de CORS_ALLOWED_ORIGINS, separación CSV ni habilitación de wildcard. La configuración actual es una lista por IConfiguration; es distinta del ejemplo .env pero ya configurable. Si se adopta el enfoque enseñado, unificar la fuente y documentar la sustitución, sin mantener dos políticas o listas divergentes.
+- La API tiene perfil HTTP http://localhost:5024 y perfil HTTPS https://localhost:7249; no usar el puerto 5000 del ejemplo. EquiposController expone GET /api/equipos y devuelve EquipoResponseDto mediante el servicio. Existen endpoints propios de usuarios y préstamos; esta clase se centra en lectura del catálogo.
+- frontend/package.json aún no incluye axios; features/layouts y servicio HTTP siguen pendientes junto a las clases 13–14. El frontend continúa con tres tarjetas estáticas.
+
+Adaptación prevista al implementar el conjunto:
+
+- Crear frontend/.env.example con VITE_API_BASE_URL=http://localhost:5024/api para el perfil HTTP y su copia local .env. Verificar el perfil realmente usado, posibles redirecciones HTTPS y certificado antes de atribuir un fallo a CORS. No duplicar /api al combinar baseURL y recurso /equipos. Reiniciar Vite tras cambiar .env.
+- equiposApi.ts importa el contrato Equipo (id/nombre/tipo/estado), configura Axios desde VITE_API_BASE_URL y exporta obtenerEquiposAsync(): Promise<Equipo[]> mediante apiClient.get<Equipo[]>('/equipos') y respuesta.data. Conservar el límite de responsabilidades de clase 14; ajustar localización del cliente compartido si las clases 16–17 lo requieren, sin anticipar abstracciones.
+- Sustituir la carga simulada por registros reales del backend sin insertar datos en la base automáticamente para rellenar la vista. Permitir catálogo vacío, búsqueda sin coincidencias, carga y fallo distinguibles; el conteo corresponde a la colección recibida, sin afirmar total de toda la BD si el contrato cambia después.
+- Mensaje visible de error sencillo, por ejemplo No se pudieron cargar los equipos. Conservar detalles en consola/documentación. No copiar textos sobre PostgreSQL, .NET, CORS, F12, endpoints, arquitectura o futuras etapas en la interfaz, según preferencia del usuario.
+- Conservar diseño actual, props, ilustración genérica para otros tipos, botones pendientes deshabilitados, React Compiler y StrictMode. Revisar limpieza/cancelación del efecto al integrar con las clases restantes: el ejemplo 15 también omite cleanup.
+- Si se adopta CORS_ALLOWED_ORIGINS, leerla directamente tras Env.Load como la clase y preservar validación de configuración. No asumir que .env cargado después de CreateBuilder recarga por sí solo IConfiguration. No imprimir credenciales al revisar variables.
+- El dominio unah.edu.hn es del ejemplo del curso, no un requisito del Sistema de Préstamos de Equipo. Documentar el mecanismo wildcard y aplicarlo únicamente a dominios realmente indicados para el proyecto; conservar origen local explícito. localhost y 127.0.0.1 son orígenes distintos; usar el host configurado en el navegador o autorizar explícitamente los necesarios.
+
+Precisiones verificadas para no trasladar errores conceptuales del texto:
+
+- Un origen combina esquema/host/puerto. CORS controla qué respuestas puede leer un script del navegador; no autentica usuarios ni garantiza impedir toda escritura. Un POST simple puede enviarse sin preflight, y un GET con encabezados no permitidos como simples puede requerir OPTIONS. Content-Type application/json global del ejemplo puede convertir también su GET en una petición con preflight si se envía ese encabezado. Observar Network en vez de asegurar que siempre habrá SELECT previo al fallo. Fuente: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS.
+- Un preflight fallido impide que el navegador envíe la petición real correspondiente; el servidor puede responder OPTIONS sin los encabezados necesarios, incluso con estado 2xx. No usar solo el código HTTP para concluir autorización CORS. No confundir métodos de lectura/escritura con la clasificación de solicitudes simples.
+- CORS no protege llamadas directas de clientes ajenos al navegador ni sustituye autenticación/autorización/defensas CSRF. No agregar JWT en esta clase; UseAuthentication por sí solo no restringe todos los endpoints sin reglas de autorización.
+- El genérico axios.get<Equipo[]> aporta tipado estático; no verifica en ejecución que el JSON recibido cumpla Equipo. Mantener contratos coherentes con DTO público y no afirmar validación runtime automática.
+- La clase usa el rechazo HTTP predeterminado de Axios y .catch/.finally. Un error de Axios no demuestra por sí solo CORS: también puede ser HTTP, desconexión, DNS, certificado o configuración. No mostrar diagnóstico categórico sin evidencia.
+- Variables VITE_* se incluyen en el código del cliente: URL base es configuración pública, no un secreto. Nunca colocar cadena de conexión, contraseña PostgreSQL ni claves privadas en ellas. .env.example sí puede versionarse con la URL pública; .env permanece excluido. Fuente: https://vite.dev/guide/env-and-mode.
+- WithOrigins admite patrones de subdominios mediante SetIsOriginAllowedToAllowWildcardSubdomains; no equivale a AllowAnyOrigin ni requiere AllowCredentials para el GET actual. Referencia .NET 10: https://learn.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-10.0.
+
+Solo análisis estático y documentación: no se instaló Axios, no se crearon/modificaron .env, no se alteró CORS, no se iniciaron servicios ni se realizaron peticiones o escrituras. Próximo material: clase 16; se mantiene la espera hasta revisar la 17.
+
+## Clase 16 — POST, errores de FluentValidation y validación reactiva con Zod — 2026-11-06
+
+Material completo recibido en Texto pegado.txt. Revisados los ejemplos de ambas fases: formulario sin validación frontend para observar rechazos reales; implementación final con Zod, React Hook Form y extractor de errores. Solo análisis y documentación; implementación aún pospuesta hasta revisar la clase 17.
+
+Conceptos y moldes indispensables:
+
+- Contratos asimétricos: DTO de creación sin id frente a DTO de lectura con id generado por el servidor. En el ejemplo CrearHabitoGlobalDto solo contiene nombre; HabitoGlobal contiene id/nombre.
+- Servicio Axios añade crearHabitoGlobalAsync(dto): Promise<HabitoGlobal> con apiClient.post<HabitoGlobal>('/habitos', dto) y devuelve respuesta.data. GET incorpora Array.isArray(respuesta.data), que solo comprueba la colección, no valida cada objeto. Si falta VITE_API_BASE_URL el ejemplo solo registra console.error; al implementar no dejar que una base indefinida genere llamadas accidentales al origen de Vite.
+- extraerMensajeErrorBackend(error: unknown): usa axios.isAxiosError, trata ausencia de response, conserva status para diagnóstico y examina data. Soporta ValidationFailure[] mediante Array.isArray/map(errorMessage)/filtro de strings; texto directo; objeto con errors agrupados por campo mediante Object.values(...).flat(); propiedades error/mensaje/message/detail/title como alternativas. Si no es Axios, usa Error.message o mensaje genérico. Revisar forma real de los valores antes de usarlos, sin confiar solo en casts TypeScript.
+- Fase 1 CrearHabitoForm: props onHabitoCreado(nuevo) y onCancelar(); useState para nombre/guardando/errorServidor; evento FormEvent<HTMLFormElement>, preventDefault, try/await POST, vaciado del nombre y callback de éxito, catch con extractor y finally que restablece guardando. Es un experimento temporal para comprobar el backend, no el formulario final sin validación.
+- CatalogoHabitosView añade mostrarFormulario=false; Nuevo muestra el formulario y se oculta mientras está abierto. Callback de creación usa setHabitos(actuales => [...actuales, nuevoDesdeBD]) y cierra el formulario; Cancelar también lo cierra. El registro añadido es la respuesta del servidor y no se inventa id ni se repite GET tras éxito.
+- Actualización inmutable: no usar push sobre el array del estado. Preferir setter funcional con spread, como el ejemplo final, para calcular a partir del estado más reciente.
+- Fase 2 instala zod, react-hook-form y @hookform/resolvers. Añade features/habitos/schemas/habito.schema.ts con crearHabitoGlobalSchema = z.object({ nombre: z.string().trim().min(1,...).min(3,...).max(100,...).regex(...) }); exporta z.infer<typeof schema>. El mínimo 3 y la regex son reglas del ejemplo, no requisitos automáticos del proyecto.
+- Formulario final: useForm<TipoInferido>({ resolver: zodResolver(schema), mode: 'onChange', defaultValues }); extrae register/handleSubmit/reset y formState.errors/isValid/isSubmitting. handleSubmit(procesarEnvioLimpio) reemplaza el manejador manual del submit; usa register para los inputs y no duplica su estado en useState.
+- procesarEnvioLimpio es async, limpia errorServidor, espera POST, reset y callback; catch presenta mensajes del backend conservando el formulario. isSubmitting depende de devolver/esperar la promesa del envío. Submit deshabilitado si !isValid || isSubmitting; inputs y Cancelar deshabilitados durante envío. register onChange borra un error de servidor obsoleto. Muestra errores locales junto al campo y error de servidor en banner.
+- Estructura final del feature: api (GET/POST/extractor), components (vista/formulario/tarjeta), schemas (Zod) y types (entrada/salida/errores). Mantener AppLayout y composición de clase 14.
+
+Contraste con el backend real de Préstamos de Equipo:
+
+- CrearEquipoRequestDto exige Nombre, Tipo y Estado; no contiene Id. EquipoResponseDto devuelve Id/Nombre/Tipo/Estado. El POST existente /api/equipos devuelve 201 con DTO y Location al GET por id.
+- CrearEquipoValidator: Nombre NotEmpty/MaximumLength(100); Tipo NotEmpty/MaximumLength(250); Estado NotEmpty y solo Disponible o Mantenimiento. Prestado es un estado válido de lectura, pero no de creación: se asigna por un préstamo, no desde este formulario.
+- No existe MinimumLength(3), regex restrictiva ni índice de nombre único en EquipoConfiguration. No inventar esas restricciones, ni cambios de modelo/migraciones, para imitar el ejemplo de hábitos. Tipo es texto libre obligatorio; Estado se presta a un select con dos opciones y Disponible inicial.
+- EquipoService valida la entrada y luego guarda Nombre.Trim()/Tipo.Trim(); la validación de longitudes del backend sucede antes de ese trim. Al reflejar reglas y enviar el resultado transformado de Zod, documentar la normalización y no confundir el payload validado con valores originales sin transformar.
+- ApiExceptionHandler NO devuelve ValidationFailure[]: ValidationException se transforma en ValidationProblemDetails con status 400, title y errors: { Nombre: [mensajes], Tipo: [...], Estado: [...] }; claves del diccionario provienen de PropertyName y deben mapearse a nombres camelCase del formulario si se muestran por campo.
+- El mismo manejador devuelve ProblemDetails para 404, 409 con Detail de negocio y 500 con título genérico. El extractor debe priorizar este contrato existente; no cambiar el backend para devolver arrays solo por concordar con la clase. ASP.NET Core también puede generar errores de binding con errors.
+
+Adaptación prevista cuando se autorice programar:
+
+frontend/src/features/equipos/
+  api/equiposApi.ts
+  components/CatalogoEquiposView.tsx
+  components/CrearEquipoForm.tsx
+  components/EquipoCard.tsx
+  components/EquipoIlustracion.tsx
+  schemas/equipo.schema.ts
+  types/equipo.types.ts
+
+- Tipos: Equipo de salida; CrearEquipoDto con nombre/tipo/estado (sin id), consistente con el DTO C#. Modelar ProblemDetails/errores por campo según necesidad, sin duplicar innecesariamente estructuras ni dar por hecho ValidationFailure[]. Mantener coherencia entre tipo de creación y tipo inferido del esquema.
+- Esquema: nombre obligatorio hasta 100 y tipo obligatorio hasta 250; rechazar valores de solo espacios y elegir normalización acorde al servicio; estado enum Disponible/Mantenimiento. Mensajes en español orientados al usuario. No incorporar mínimo 3 ni regex de hábitos. El backend sigue validando estas mismas reglas aunque exista Zod.
+- crearEquipoAsync(dto) usa POST /equipos y retorna el equipo persistido. CrearEquipoForm recibe onEquipoCreado(equipo) y onCancelar; formulario con labels, campos registrados y select de estado, validación onChange y bloqueos durante el envío, conservando el diseño actual.
+- La vista pasa de Nuevo equipo deshabilitado a abrir/cerrar formulario. Callback agrega respuesta usando setEquipos(actuales => [...actuales, equipo]) y actualiza conteos derivados sin F5 ni GET adicional. Mantener el filtro existente; si el nuevo equipo no coincide, no ocultar silenciosamente el efecto de creación ni alterar la regla sin evaluar la interacción.
+- Error local muestra los mensajes sintácticos; rechazo del servidor conserva mensajes útiles de sus validadores/ProblemDetails. Detalles HTTP y tecnológicos quedan en consola/documentación: no mostrar POST /api/equipos, Zod + FluentValidation, Guardar en PostgreSQL, Rechazo .NET ni avisos de desarrollo en el producto. Usar Guardar equipo, Guardando y mensajes de validación comprensibles.
+- No convertir fallos de red genéricos en afirmaciones categóricas de CORS. No renderizar mensajes como HTML. No reintentar automáticamente POST por un timeout: puede haberse creado el registro aunque no llegara la respuesta.
+- El laboratorio de rechazo se comprobará con solicitudes inválidas identificables, sin desactivar permanentemente validaciones. Si se crean registros de prueba, preservar los del usuario y retirar solo los propios cuando proceda. El preflight puede estar cacheado y no siempre se observa un OPTIONS nuevo antes de cada POST.
+- Al implementar conjuntamente las clases 13–17 revisar condiciones entre GET inicial y POST para que una carga tardía no borre el equipo recién creado; resolver dentro del alcance enseñado, por ejemplo habilitando creación cuando la colección inicial esté disponible. Verificar política de carga/cancelación con la clase 17 antes de fijar diseño final.
+
+Precisiones de alcance:
+
+- Zod valida el formulario, no garantiza por sí mismo seguridad, ausencia de duplicados o validez de respuestas HTTP. La validación backend no se sustituye ni se limita exclusivamente a reglas semánticas; también debe rechazar formatos y campos inválidos desde cualquier cliente.
+- El ejemplo enseña callbacks hijo → padre para comunicar creación y cancelación, sin estado global ni router. Crear Equipo no habilita automáticamente solicitar préstamos, editar/borrar, usuarios o autenticación.
+- No se instalaron Zod/React Hook Form/Axios ni se cambiaron archivos de implementación, configuración o BD. Se revisaron clase, DTO, validador, servicio, configuración de entidad y manejador de excepciones. No se ejecutaron pruebas de implementación. Próximo material esperado: clase 17.
+
+## Clase 17 — Laboratorio de integración Front-to-Back — 2026-11-06
+
+Material recibido completo según el usuario: «Conexión de los formularios de React con los DTOs de entrada y salida del servidor (Verbos POST y DELETE para los hábitos) validando la comunicación asíncrona». No contiene ejemplos adicionales ni instrucciones detalladas. No inventar un ejemplo original del curso: distinguir lo recibido de nuestra adaptación/inferencia.
+
+Interpretación de alcance:
+
+- Laboratorio de consolidación de clases 13–16: estado/efectos/map/filter, organización por features y layout, Axios/CORS/configuración, DTOs de lectura y creación, formulario Zod/React Hook Form, propagación de errores y callbacks con actualización inmutable.
+- POST ya está explicado en detalle por clase 16. DELETE es la operación adicional explícita del enunciado; su implementación frontend puede derivarse de Axios + async/await + callbacks + filter, y el backend ya lo implementa desde el trabajo de clases anteriores. No es necesario añadir otro framework ni introducir conceptos de otra unidad.
+- «Hábitos» se adapta a Equipos, continuando el catálogo. No implica extender automáticamente a formularios de usuarios/préstamos ni implementar PUT, JWT o navegación funcional.
+
+Contratos existentes y flujo propuesto de DELETE:
+
+- EquiposController ya expone DELETE /api/equipos/{id:int}, llama a EquipoService.DeleteAsync(id) y responde 204 sin cuerpo al completar. No hay DTO de creación ni objeto de respuesta obligatorio en DELETE: el id va en la ruta.
+- Servicio frontend previsto: eliminarEquipoAsync(id: number): Promise<void> { await apiClient.delete(`/equipos/${id}`) }. No intentar leer un Equipo ni deserializar un JSON de una respuesta 204.
+- La vista controla la operación asíncrona, comunica a EquipoCard un callback y estado de eliminación según sea necesario. Mantener Equipo como contrato de datos; props de acciones/estado de UI se definen aparte (por ejemplo EquipoCardProps que extiende Equipo), sin añadir onEliminar a DTOs ni a la respuesta HTTP.
+- Solicitar confirmación de eliminación en la interfaz antes de la petición, bloquear repetición mientras está pendiente y preservar la tarjeta si falla. Tras éxito, actualizar setEquipos(actuales => actuales.filter(e => e.id !== id)), con los contadores derivados. Esta es nuestra propuesta de interacción, no código proporcionado por la clase.
+- Backend conserva historial: cualquier préstamo relacionado impide borrar equipo, incluso si ya fue devuelto. Error 409 se muestra con el mensaje de ProblemDetails; 404 indica inexistencia. No eliminar préstamos, desactivar restricciones ni cambiar backend para que todos los DELETE resulten exitosos.
+- Verificar carga, colección vacía, filtro, alta válida/invalidada, errores del servidor, borrado exitoso, conflicto con historial y fallos de red. Validar persistencia con recarga/GET y observar 201/400/204/404/409 según el caso; no limitarse a retirar tarjetas localmente.
+- Las pruebas de escritura deben usar registros propios identificables y preservar datos del usuario. No borrar registros ajenos como demostración. Mantener diagnóstico técnico fuera de los textos visibles de producto.
+
+Fuentes consultadas para cubrir el detalle de DELETE no desarrollado por la clase:
+
+- Axios: https://axios-http.com/docs/api_intro (referencia y alias de métodos).
+- React: https://react.dev/learn/updating-arrays-in-state (actualizaciones inmutables y eliminación mediante filter).
+- HTTP 204: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/204 (respuesta exitosa sin contenido).
+
+Estado de autorización y siguiente paso:
+
+- Ya se recibieron y analizaron las clases 13–17, por lo que se alcanzó el punto acordado para reunir el plan de implementación. El mensaje actual pide aclarar si el material alcanza; no constituye por sí solo una orden de programar en este turno.
+- Explicar al usuario que podemos implementarlo con las clases anteriores y completar DELETE siguiendo documentación oficial, distinguiendo las decisiones de implementación propias de los ejemplos del curso. Conservar diseño y preferencias existentes.
+- Solo se actualizaron estas notas: no se modificó código, no se instalaron paquetes, no se iniciaron servicios ni se ejecutaron operaciones HTTP de escritura.
+
+## Implementación autorizada de clases 13–17 y guía de estudio — 2026-11-06
+
+El usuario autorizó empezar a programar tras revisar la clase 17 y pidió una guía para principiantes que explique todo el sistema con referencias al curso. Esta autorización sustituye la espera anterior.
+
+Implementación:
+
+- Reorganizado frontend por features: tipos/servicios/esquema/componentes de equipos en src/features/equipos; AppLayout recibe children y conserva el diseño; App solo compone layout y vista. Icono permanece compartido. Se movieron EquipoCard y EquipoIlustracion sin dejar copias activas en la ruta anterior.
+- Instalados axios 1.21.0, zod 4.6.7, react-hook-form 7.91.0 y @hookform/resolvers 7.0.3. Conservados React Compiler, TypeScript y Tailwind. Actualizado lockfile.
+- equiposApi implementa GET, POST y DELETE reales con URL desde VITE_API_BASE_URL, espera máxima, comprobación mínima de respuestas y extracción de ValidationProblemDetails/ProblemDetails. No usa datos simulados ni crea registros iniciales. DELETE no espera cuerpo tras 204.
+- Añadida frontend/.env.example y copia local .env (excluida por Git), con http://localhost:5024/api. Se conserva la política CORS existente Frontend/Cors:AllowedOrigins, ya funcional; no se añadió CSV obligatorio ni wildcard UNAH de ejemplo. No se cambió código del backend.
+- CatalogoEquiposView incorpora estado, efecto GET cancelable con AbortController, búsqueda, contadores, carga/error/vacío y actualización manual. AbortController es una adaptación mínima de la limpieza de clase 13 al transporte Axios, explicada en la guía; StrictMode se mantiene.
+- CrearEquipoForm usa Zod/RHF con validación onChange; nombre/tipo obligatorios y límites 100/250; Disponible/Mantenimiento como estados iniciales. No se copiaron mínimo 3 ni regex del ejemplo. refine sobre string.length conserva el límite UTF-16 del backend con la versión actual de Zod. Respuesta POST actualiza estado inmutable y limpia búsqueda para mostrar el nuevo equipo.
+- Eliminación con confirmación inline/cancelación, bloqueo mientras espera, retiro local solo tras éxito y propagación de conflictos del backend. Las props de acciones son específicas de tarjeta, no campos DTO. Actualizar se bloquea durante formulario y creación se bloquea hasta terminar GET para evitar sobrescrituras por cargas tardías.
+- Usuarios, Préstamos, Solicitar préstamo y PUT frontend continúan fuera de alcance; no se agregó autenticación/router. Se respetó la preferencia de no mostrar mensajes técnicos de implementación en el producto.
+
+Guía y documentación:
+
+- GUIA_DEL_SISTEMA.md: guía extensa para principiantes (más de 500 líneas), enlazada desde README. Incluye glosario, mapa de clases 1–17, arranque/configuración, entidades/DTOs/props, capas .NET, repositorios/DI/DIP, reglas de usuarios/préstamos, EF/migraciones/transacciones, flujo de errores, componentes/hooks/formularios/Axios/CORS, diagramas y recorridos GET/POST/DELETE, mapa de archivos, ejercicios y diagnóstico.
+- La guía distingue conceptos del curso de decisiones del proyecto y estado real del frontend frente a capacidades más amplias del backend. frontend/README y Backend/BACKEND actualizados; capturas actuales de escritorio/móvil en frontend/docs.
+
+Verificaciones realizadas:
+
+- Build de producción con TypeScript y Vite correcto.
+- Nuevo frontend/tests/Test-Integracion.mjs carga módulos reales mediante Vite SSR: 24 comprobaciones correctas de Zod, CORS, DTO, GET/POST/DELETE, errores 400/404, persistencia y conservación de registros. El caso de extracción 409 utiliza un objeto simulado; se distingue de la comprobación real del backend.
+- Backend/tests/Test-Backend.ps1: 113 comprobaciones correctas, incluidas reglas/historial/concurrencia; retiró únicamente sus propios registros temporales.
+- Navegador real: validación bloquea espacios vacíos, POST persiste, recarga conserva, búsqueda sin coincidencias, cancelación de borrado conserva y DELETE elimina solo el equipo temporal creado para la prueba. Se verificaron error de red al detener nuestra API y recuperación con Actualizar catálogo tras reiniciarla.
+- Revisión visual con formulario en 390x844 y 1440x1050: sin desbordamiento horizontal; sidebar oculto/visible según tamaño. Capturas actualizadas. Se conservaron los datos originales y todos los registros propios de prueba fueron eliminados; no se reiniciaron secuencias.
+- Lint sigue fallando por incompatibilidad PREVIA de typescript-eslint 8.72.1 con TypeScript 7.0.2. No se cambió configuración/versiones del compilador o linter ni se declara lint aprobado.
+- Docker Desktop estaba detenido; se inició con autorización del entorno, se levantó el contenedor existente sin borrar volúmenes y se iniciaron API/Vite. API fue detenida y reiniciada para la prueba de recuperación. Quedan API en localhost:5024, Vite en localhost:5173 y contenedor disponibles para la revisión del usuario.
+- No se hicieron commits ni push. Se preservaron las notas locales previas del seguimiento.
+
+### Cierre de la API temporal por conflicto con Visual Studio
+
+- El usuario encontró address already in use al iniciar con el botón verde. Se identificó la instancia iniciada por el asistente durante las pruebas (dotnet run --no-build --launch-profile http, proceso padre del runtime Codex), aunque las consultas iniciales de listeners no la mostraban. HTTP a /openapi/v1.json confirmó que respondía 200.
+- Se detuvo exclusivamente esa instancia temporal mediante Ctrl+C en su sesión. Para futuras verificaciones, no dejar una API propia activa que impida iniciar desde Visual Studio; comprobar respuesta HTTP además de listeners antes de concluir que el puerto está libre.

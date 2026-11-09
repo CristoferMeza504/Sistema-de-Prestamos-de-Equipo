@@ -1,41 +1,53 @@
 # Frontend · Préstamos de Equipo
 
-Catálogo visual construido con React, TypeScript, React Compiler, Vite y Tailwind CSS. Corresponde a las clases 10, 11 y 12 del proyecto de estudio.
+Catálogo conectado a la API .NET con React, TypeScript, React Compiler, Vite y Tailwind. Implementa las clases 10–17: consulta, búsqueda, creación y eliminación de equipos.
+
+La [guía para principiantes](../GUIA_DEL_SISTEMA.md) explica frontend y backend, archivo por archivo, y relaciona el código con las clases.
 
 ## Ejecutar
 
-Desde esta carpeta:
+Inicia PostgreSQL y la API siguiendo [BACKEND.md](../Backend/BACKEND.md). Desde frontend, si aún no tienes .env:
 
 ```powershell
+Copy-Item .env.example .env
 pnpm install
-pnpm run dev
+pnpm run dev --host localhost --port 5173 --strictPort
 ```
 
-Abrir la dirección que indique Vite (normalmente http://localhost:5173). Para generar la versión de producción: `pnpm run build`; para revisarla: `pnpm run preview`.
+Abre http://localhost:5173. VITE_API_BASE_URL debe apuntar a http://localhost:5024/api con el perfil HTTP del backend. Reinicia Vite al modificar .env. Se usa localhost, no 127.0.0.1, para coincidir con el origen CORS configurado.
 
-## Cómo está organizado
+## Organización
 
-- `src/main.tsx`: monta App en el elemento root y carga los estilos globales.
-- `src/App.tsx`: organiza la interfaz y pasa tres equipos de ejemplo a EquipoCard.
-- `src/components/EquipoCard.tsx`: componente reutilizable con props tipadas (id, nombre, tipo y estado). Selecciona las clases visuales del estado y devuelve JSX.
-- `src/components/EquipoIlustracion.tsx`: ilustraciones SVG propias de los tres tipos de ejemplo; otros tipos muestran una ilustración genérica. Son decorativas, no fotografías ni un campo nuevo del modelo.
-- `src/components/Icono.tsx`: iconos SVG propios, reutilizados mediante una prop.
-- `src/index.css`: importa Tailwind y define tokens de color/tipografía y reglas globales mínimas.
-- `vite.config.ts`: conserva React Compiler y añade el plugin de Tailwind.
+- src/App.tsx: compone AppLayout y CatalogoEquiposView.
+- src/layouts/AppLayout.tsx: sidebar, cabecera, main y footer; recibe children.
+- src/features/equipos/types/equipo.types.ts: contratos de entrada y salida.
+- src/features/equipos/api/equiposApi.ts: Axios, GET/POST/DELETE y mensajes de ProblemDetails.
+- src/features/equipos/schemas/equipo.schema.ts: validación Zod de nombre, tipo y estado inicial.
+- src/features/equipos/components/CatalogoEquiposView.tsx: estado, efecto cancelable, búsqueda y callbacks.
+- src/features/equipos/components/CrearEquipoForm.tsx: React Hook Form, validación al escribir y envío.
+- src/features/equipos/components/EquipoCard.tsx: datos del equipo y solicitud de confirmación de borrado.
+- src/features/equipos/components/EquipoIlustracion.tsx: SVG propios; ilustración genérica para otros tipos libres.
+- src/components/Icono.tsx: iconos compartidos.
+- src/index.css: Tailwind y tokens. vite.config.ts conserva React Compiler.
 
-La rejilla utiliza una columna por defecto, dos desde sm y tres desde lg. El sidebar aparece desde md; en móvil la identidad se presenta en la cabecera. Las tarjetas y el layout emplean utilidades de Tailwind, Flexbox, CSS Grid y etiquetas semánticas.
+## Comportamiento
 
-## Alcance
+Los datos provienen de la API, sin simulación ni registros iniciales creados automáticamente. Crear solo permite Disponible o Mantenimiento. El formulario no envía id; utiliza el id devuelto por el servidor. Tras guardar se limpia la búsqueda para mostrar el nuevo equipo.
 
-Los tres equipos son datos manuales de demostración, sin conexión a la API. Nuevo equipo, Solicitar préstamo y las futuras pantallas de Usuarios/Préstamos están deshabilitados. No se implementaron autenticación, rutas, formularios ni CRUD frontend.
+Eliminar solicita confirmación y conserva la tarjeta hasta recibir éxito. El backend rechaza equipos con historial (409). Los fallos se muestran con mensajes en español. Actualizar catálogo permite recargar tras una pérdida de conexión; no se reintentan automáticamente las escrituras.
 
-Las props se usan como entradas de solo lectura. El contrato TypeScript refleja los campos públicos de EquipoResponseDto y no valida respuestas HTTP en ejecución.
+Usuarios, Préstamos y Solicitar préstamo siguen deshabilitados. No hay autenticación, router, PUT frontend ni sincronización automática con otros clientes.
 
-## Verificaciones y límite conocido
+## Verificar
 
-- Build de producción correcto.
-- Revisión visual en escritorio (1440 px) y móvil (390 px), y revisión de distribución en tablet (768 px), sin desbordamiento horizontal.
-- Sin errores ni advertencias capturados en la consola del navegador durante la revisión.
-- `pnpm run lint` sigue bloqueado por la incompatibilidad previa: typescript-eslint 8.72.1 no admite TypeScript 7.0.2. No se cambiaron esas versiones durante esta implementación.
+```powershell
+pnpm run build
+pnpm run lint
+node tests/Test-Integracion.mjs
+```
+
+El script requiere API/PostgreSQL activos y .env configurado. Carga los módulos reales mediante Vite, comprueba validaciones, CORS y GET/POST/DELETE; usa un prefijo único y limpia solo sus equipos temporales. El conflicto ProblemDetails se comprueba con una respuesta simulada; la regla real de historial está cubierta por Backend/tests/Test-Backend.ps1.
+
+Límite previo: typescript-eslint 8.72.1 no admite TypeScript 7.0.2; el lint sigue bloqueado por esa incompatibilidad. Build e integración se verifican por separado y no se declaran equivalentes al lint.
 
 Capturas: [escritorio](docs/catalogo-escritorio.png) · [móvil](docs/catalogo-movil.png).
