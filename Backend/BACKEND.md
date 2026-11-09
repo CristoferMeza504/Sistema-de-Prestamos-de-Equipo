@@ -21,7 +21,7 @@ Ejecutar la API desde su carpeta permite que `Env.Load()` encuentre el `.env` lo
 
 API HTTP: `http://localhost:5024`. El perfil `https` también está disponible según `Properties/launchSettings.json`. En Development, abrir [Scalar](http://localhost:5024/scalar/v1) para explorar los endpoints y enviar solicitudes. El contrato se sirve en `/openapi/v1.json`. Ambas rutas solo están habilitadas en desarrollo, siguiendo la [integración oficial de Scalar](https://scalar.com/products/api-references/integrations/aspnetcore/integration). Las operaciones ejecutadas desde Scalar modifican datos igual que el cliente HTTP.
 
-`Cors:AllowedOrigins` en `appsettings.json` permite por defecto `http://localhost:5173` para el futuro cliente React. Ajustar esa lista al origen real del cliente; CORS no es autenticación.
+`Cors:AllowedOrigins` en `appsettings.json` permite por defecto `http://localhost:5173` para el cliente React. Ajustar esa lista al origen real del cliente; CORS no es autenticación. El catálogo frontend ya consume GET/POST/DELETE de equipos; consulta la [guía del sistema](../GUIA_DEL_SISTEMA.md) para seguir el recorrido completo.
 
 ## Endpoints
 

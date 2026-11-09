@@ -6,6 +6,8 @@ El proyecto permite registrar usuarios y equipos, controlar los préstamos activ
 
 Consulta las [instrucciones del backend](Backend/BACKEND.md) para ejecutarlo, conocer sus endpoints y verificar las reglas de negocio.
 
+Para estudiar el código paso a paso, empieza por la [guía del sistema para principiantes](GUIA_DEL_SISTEMA.md), con recorridos completos y referencias a las clases 1–17. Las [instrucciones del frontend](frontend/README.md) explican cómo abrir el catálogo conectado a la API.
+
 ## Objetivo
 
 Desarrollar una aplicación pequeña pero completa que permita practicar el desarrollo **Full Stack** utilizando:
