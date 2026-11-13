@@ -13,6 +13,7 @@
 - Consultar este archivo al retomar el trabajo y contrastar sus observaciones con el código actual: es un registro, no una garantía del estado futuro.
 - El usuario autorizó mantener este archivo actualizado con la información indispensable y las evaluaciones de las siguientes clases.
 - Instrucción permanente confirmada por el usuario: actualizar este seguimiento por iniciativa propia siempre que haya información importante que sea vital conservar, sin esperar recordatorios. Registrar decisiones, autorizaciones, restricciones, cambios relevantes, resultados de verificación y pendientes; mantenerlo conciso y distinguir propuestas de implementaciones comprobadas.
+- Flujo permanente por implementación: crear una rama propia antes de programar, revisar previamente el material y sus ejemplos, implementar dentro de lo estudiado y avisar al terminar para que el usuario haga el pull request a main. Consultar dudas y conceptos necesarios fuera de las clases antes de incorporarlos. Repetir el ciclo con cada funcionalidad.
 
 ## Contexto de la aplicación
 
@@ -758,3 +759,31 @@ Verificaciones realizadas:
 
 - El usuario encontró address already in use al iniciar con el botón verde. Se identificó la instancia iniciada por el asistente durante las pruebas (dotnet run --no-build --launch-profile http, proceso padre del runtime Codex), aunque las consultas iniciales de listeners no la mostraban. HTTP a /openapi/v1.json confirmó que respondía 200.
 - Se detuvo exclusivamente esa instancia temporal mediante Ctrl+C en su sesión. Para futuras verificaciones, no dejar una API propia activa que impida iniciar desde Visual Studio; comprobar respuesta HTTP además de listeners antes de concluir que el puerto está libre.
+
+## Guía de repaso para la prueba del 11 de noviembre de 2026
+
+- El usuario confirmó que el enunciado breve sobre la integración de POST y DELETE es todo el material de la clase 17. Los ejercicios adicionales son práctica derivada de las clases previas.
+- [Guía de estudio de las clases 10 a 17](GUIA_ESTUDIO_CLASES_10_A_17.md). Se preparó con el material compartido y distingue los ejemplos de HabitForge del proyecto de equipos. Incluye 24 preguntas con soluciones y un plan de repaso hasta la prueba.
+
+## Incompatibilidad de ESLint resuelta — 2026-11-12
+
+- Se reprodujo el error typescript-eslint does not support TS 7.0 al atender la consulta del usuario sobre cómo solucionarlo. La corrección usa la configuración oficial de Microsoft para ejecutar ambas versiones juntas.
+- frontend/package.json ahora declara typescript como npm:@typescript/typescript6@~6.0.2 y @typescript/native como npm:typescript@~7.0.2. Actualizado pnpm-lock.yaml. El paquete de compatibilidad resuelto es 6.0.2 y proporciona la API TypeScript 6.0.3; tsc del build sigue siendo 7.0.2.
+- Verificaciones correctas con código de salida 0 para pnpm run lint y pnpm run build. pnpm peers check devuelve No peer dependency issues found. Se comprobaron los ejecutables tsc/tsc6 y la versión del módulo typescript.
+- Este resultado sustituye los pendientes previos de lint. frontend/README.md y GUIA_DEL_SISTEMA.md actualizados para reflejar la solución. Fuente https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0.
+- Se conservaron los cambios locales previos del usuario. No se iniciaron servicios, no se modificó la lógica de aplicación ni se hicieron commits.
+
+## Trabajo por ramas y edición de equipos — 2026-11-12
+
+- El usuario autorizó implementar los pendientes mediante una rama por implementación y avisarle al terminar para que él abra el pull request a main. Antes de cada implementación, revisar clases y ejemplos. Consultar al usuario si se necesita un concepto fuera de lo estudiado. Continuar con la siguiente funcionalidad después del ciclo de revisión/integración del usuario.
+- Había cambios previos de compatibilidad lint sin commit en main. Se aislaron en codex/corregir-lint, commit 2801ab6, y se publicó la rama. La nueva codex/editar-equipos parte de esa corrección para disponer de lint funcional. Orden de PR a main acordado por la preparación actual: primero corregir-lint y después editar-equipos. No se fusiona main desde el asistente.
+- Antes de programar edición se releyeron las reglas PUT de clase 9 registradas y el ejemplo completo de formulario final de clase 16. Se aplican callbacks/estado/map de clase 13, organización por features de clase 14 y Axios de clase 15. La revisión no detectó necesidad de un concepto arquitectónico adicional.
+- Implementado EditarEquipoForm específico, precargado con defaultValues y key por id. Reutiliza reglas de texto del esquema de creación, admite los estados de actualización y conserva mensajes backend. Tarjeta incorpora acción Editar. Vista mantiene una selección de edición, bloquea recarga y acciones durante formulario y reemplaza el equipo tras éxito con map inmutable.
+- ActualizarEquipoDto envía nombre/tipo/estado sin id en body. actualizarEquipoAsync usa PUT /equipos/{id} y espera 204. Tras confirmación, la UI usa los valores ya normalizados por Zod, iguales a los que guarda EquipoService. No se añade GET posterior que pueda fallar después del PUT.
+- El formulario solo ofrece conservar Prestado si el equipo ya aparece Prestado; en los demás casos ofrece Disponible/Mantenimiento. El backend sigue validando concurrencia y transiciones. Cancelar conserva datos y fallos dejan el formulario abierto.
+- Validación: lint y build correctos. Test-Integracion ampliado de 24 a 38 comprobaciones, todas correctas. Nuevos casos de esquema, PUT válido, persistencia, preservación tras 400/409, transición Disponible/Mantenimiento e inexistencia 404.
+- Navegador: precarga, cancelar, rechazo de campos vacíos, cambio de nombre/tipo/estado y persistencia tras recarga correctos. Se usó solo un registro propio temporal y se retiró al finalizar. Se conservaron los dos equipos preexistentes. Verificación móvil a 390px sin desbordamiento. Captura de edición guardada fuera del repositorio como evidencia de revisión.
+- GUIA_DEL_SISTEMA y frontend/README actualizados con edición y referencias a las clases. La guía de estudio anterior permanece como archivo local pendiente de versionado y no se mezcla con esta funcionalidad.
+- A petición del usuario, retirados los cuatro documentos ajenos al proyecto Imagenes_Marketplace_y_TikTok.docx, Imagenes_organizadas.docx, Imagenes_recortadas.docx e Imagenes_recortadas_final.docx. Eran archivos no rastreados.
+- Docker estaba detenido y se inició para las pruebas. El SDK observado al arrancar fue 10.0.404 (actualización del entorno respecto del registro previo 10.0.403); no se cambió el SDK del usuario. Las instancias temporales API/Vite se detienen al terminar para evitar conflictos con el botón verde de Visual Studio.
+- Siguiente implementación prevista tras los PR: interfaz de usuarios, en otra rama. Navegación funcional y préstamos se revisarán con los conceptos del curso antes de cada implementación.

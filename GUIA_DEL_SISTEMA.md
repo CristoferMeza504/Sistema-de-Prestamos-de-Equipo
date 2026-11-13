@@ -2,7 +2,7 @@
 
 Esta guía está escrita para estudiar el código real de este repositorio, desde cero. No necesitas entender todos los archivos a la vez: primero sigue un equipo desde la pantalla hasta la base de datos. Después estudia usuarios y préstamos, que reutilizan muchas de las mismas ideas.
 
-**Estado del proyecto:** el backend gestiona usuarios, equipos, préstamos y devoluciones. El frontend permite consultar, buscar, registrar y eliminar equipos. Las pantallas de usuarios, los préstamos desde React y la edición de equipos todavía no están implementadas. Un botón deshabilitado no realiza una operación.
+**Estado del proyecto:** el backend gestiona usuarios, equipos, préstamos y devoluciones. El frontend permite consultar, buscar, registrar, editar y eliminar equipos. Las pantallas de usuarios y los préstamos desde React todavía no están implementados. Un botón deshabilitado no realiza una operación.
 
 ## Cómo usar esta guía
 
@@ -340,6 +340,7 @@ src/
     components/
       CatalogoEquiposView.tsx
       CrearEquipoForm.tsx
+      EditarEquipoForm.tsx
       EquipoCard.tsx
       EquipoIlustracion.tsx
 ```
@@ -369,6 +370,7 @@ Abre `CatalogoEquiposView.tsx` y localiza cada nombre:
 | `errorCarga` | `null` | Fallo al leer el catálogo. |
 | `busqueda` | `''` | Texto introducido en el buscador. |
 | `mostrarFormulario` | `false` | Decide si se muestra CrearEquipoForm. |
+| `equipoAEditar` | `null` | Conserva la selección que precarga EditarEquipoForm. |
 | `equipoAEliminar` | `null` | Selección pendiente de confirmación. |
 | `eliminandoId` | `null` | Identifica la eliminación en curso. |
 | `errorOperacion` | `null` | Fallo de DELETE, separado del fallo del GET. |
@@ -408,6 +410,14 @@ setEquipos((actuales) => [...actuales, equipo])
 `actuales` es la colección más reciente; `...` copia sus elementos a un array nuevo. No se usa push. Se cierra el formulario y se limpia la búsqueda para que el nuevo equipo no quede escondido por un filtro anterior.
 
 La validación frontend ayuda a la persona, pero el servidor vuelve a validar: otro cliente puede llamar a la API sin usar este formulario.
+
+### Editar un equipo — clases 9, 13, 14 y 16
+
+`EditarEquipoForm` sigue el molde del formulario de creación de la clase 16. Recibe el equipo y lo coloca en `defaultValues`. El padre lo monta con `key={equipo.id}` para que cada selección empiece con sus propios valores. El esquema de actualización reutiliza las reglas de nombre/tipo y reconoce los tres estados definidos por el backend.
+
+Al guardar, `actualizarEquipoAsync(id, datos)` envía PUT con el id en la ruta y nombre/tipo/estado en el cuerpo, como establece la clase 9. La respuesta es 204. Después de recibirla, el callback reemplaza ese equipo usando `setEquipos(actuales => actuales.map(...))`. El formulario envía los textos ya recortados por Zod, igual que los conserva el servicio .NET. Cancelar cierra el formulario sin modificar la colección.
+
+El selector permite mantener Prestado si ese era el estado del equipo, o elegir Disponible/Mantenimiento para los demás. Un cambio concurrente puede provocar 409. El mensaje del backend se presenta en el formulario, que conserva los valores. Las tarjetas y la recarga permanecen bloqueadas mientras se edita, siguiendo el mismo control de envío usado al crear.
 
 ### Eliminar sin engañar al estado
 

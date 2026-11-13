@@ -16,7 +16,7 @@ function comprobar(condicion, mensaje) {
 let api
 try {
   api = await vite.ssrLoadModule('/src/features/equipos/api/equiposApi.ts')
-  const { crearEquipoSchema } = await vite.ssrLoadModule('/src/features/equipos/schemas/equipo.schema.ts')
+  const { crearEquipoSchema, actualizarEquipoSchema } = await vite.ssrLoadModule('/src/features/equipos/schemas/equipo.schema.ts')
   const baseURL = vite.config.env.VITE_API_BASE_URL
   assert.ok(baseURL, 'Configura VITE_API_BASE_URL en frontend/.env')
   const originales = await api.obtenerEquiposAsync()
@@ -29,6 +29,11 @@ try {
   comprobar(!crearEquipoSchema.safeParse({ nombre: 'A', tipo: 'T'.repeat(251), estado: 'Disponible' }).success, 'Límite tipo')
   comprobar(!crearEquipoSchema.safeParse({ nombre: '😀'.repeat(51), tipo: 'T', estado: 'Disponible' }).success, 'Longitud compatible con .NET')
   comprobar(crearEquipoSchema.parse({ nombre: ' A ', tipo: ' T ', estado: 'Mantenimiento' }).nombre === 'A', 'Recortar espacios')
+  comprobar(actualizarEquipoSchema.safeParse({ nombre: 'A', tipo: 'T', estado: 'Prestado' }).success, 'Edición reconoce Prestado')
+  comprobar(!actualizarEquipoSchema.safeParse({ nombre: ' ', tipo: 'T', estado: 'Disponible' }).success, 'Edición rechaza nombre vacío')
+  comprobar(!actualizarEquipoSchema.safeParse({ nombre: 'A', tipo: 'T'.repeat(251), estado: 'Disponible' }).success, 'Edición limita tipo')
+  comprobar(!actualizarEquipoSchema.safeParse({ nombre: 'A'.repeat(101), tipo: 'T', estado: 'Disponible' }).success, 'Edición limita nombre')
+  comprobar(!actualizarEquipoSchema.safeParse({ nombre: 'A', tipo: 'T', estado: 'Desconocido' }).success, 'Edición rechaza estado ajeno')
 
   const cors = await fetch(`${baseURL}/equipos`, { method: 'OPTIONS', headers: {
     Origin: 'http://localhost:5173',
@@ -58,9 +63,40 @@ try {
   comprobar(individual.status === 200, 'GET individual 200')
   comprobar(Object.keys(await individual.json()).sort().join() === 'estado,id,nombre,tipo', 'DTO sin relaciones EF')
 
+  const cambios = actualizarEquipoSchema.parse({ nombre: ` ${prefijo} editado `, tipo: ' Tipo actualizado ', estado: 'Mantenimiento' })
+  await api.actualizarEquipoAsync(equipo.id, cambios)
+  const actualizado = await (await fetch(`${baseURL}/equipos/${equipo.id}`)).json()
+  comprobar(actualizado.id === equipo.id && actualizado.nombre === cambios.nombre, 'PUT conserva id y persiste nombre')
+  comprobar(actualizado.tipo === 'Tipo actualizado' && actualizado.estado === 'Mantenimiento', 'PUT persiste tipo y estado')
+  try {
+    await api.actualizarEquipoAsync(equipo.id, { nombre: '', tipo: '', estado: 'Otro' })
+    assert.fail('PUT inválido debe devolver 400')
+  } catch (error) {
+    comprobar(error.response?.status === 400, 'PUT inválido 400')
+  }
+  const trasInvalido = await (await fetch(`${baseURL}/equipos/${equipo.id}`)).json()
+  comprobar(JSON.stringify(trasInvalido) === JSON.stringify(actualizado), 'PUT inválido conserva datos previos')
+  try {
+    await api.actualizarEquipoAsync(equipo.id, { ...cambios, estado: 'Prestado' })
+    assert.fail('No se debe asignar Prestado sin préstamo')
+  } catch (error) {
+    comprobar(error.response?.status === 409, 'PUT con estado incoherente 409')
+    comprobar(api.extraerMensajeErrorBackend(error).includes('préstamo'), 'PUT propaga regla de negocio')
+  }
+  const trasConflicto = await (await fetch(`${baseURL}/equipos/${equipo.id}`)).json()
+  comprobar(JSON.stringify(trasConflicto) === JSON.stringify(actualizado), 'Conflicto conserva equipo')
+  await api.actualizarEquipoAsync(equipo.id, { ...cambios, estado: 'Disponible' })
+  comprobar((await api.obtenerEquiposAsync()).find((actual) => actual.id === equipo.id)?.estado === 'Disponible', 'PUT permite volver a Disponible')
+
   await api.eliminarEquipoAsync(equipo.id)
   creados.delete(equipo.id)
   comprobar(!(await api.obtenerEquiposAsync()).some((e) => e.id === equipo.id), 'DELETE retira de PostgreSQL')
+  try {
+    await api.actualizarEquipoAsync(equipo.id, cambios)
+    assert.fail('PUT de equipo inexistente debe devolver 404')
+  } catch (error) {
+    comprobar(error.response?.status === 404, 'PUT inexistente 404')
+  }
   try {
     await api.eliminarEquipoAsync(equipo.id)
     assert.fail('La segunda eliminación debe devolver 404')

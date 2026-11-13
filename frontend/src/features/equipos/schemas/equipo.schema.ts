@@ -11,3 +11,12 @@ export const crearEquipoSchema = z.object({
 })
 
 export type CrearEquipoSchemaType = z.infer<typeof crearEquipoSchema>
+
+export const actualizarEquipoSchema = crearEquipoSchema.extend({
+  estado: z.string().refine(
+    (estado) => ['Disponible', 'Prestado', 'Mantenimiento'].includes(estado),
+    'Selecciona un estado válido.',
+  ),
+})
+
+export type ActualizarEquipoSchemaType = z.infer<typeof actualizarEquipoSchema>

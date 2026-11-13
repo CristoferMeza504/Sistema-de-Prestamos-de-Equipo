@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { CrearEquipoDto, Equipo } from '../types/equipo.types'
+import type { ActualizarEquipoDto, CrearEquipoDto, Equipo } from '../types/equipo.types'
 
 const baseURL = import.meta.env.VITE_API_BASE_URL?.trim()
 
@@ -44,6 +44,11 @@ export async function crearEquipoAsync(datos: CrearEquipoDto): Promise<Equipo> {
 export async function eliminarEquipoAsync(id: number): Promise<void> {
   comprobarConfiguracion()
   await apiClient.delete(`/equipos/${id}`)
+}
+
+export async function actualizarEquipoAsync(id: number, datos: ActualizarEquipoDto): Promise<void> {
+  comprobarConfiguracion()
+  await apiClient.put(`/equipos/${id}`, datos)
 }
 
 // El backend propio utiliza ValidationProblemDetails: errors contiene arrays por campo.

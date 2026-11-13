@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { eliminarEquipoAsync, extraerMensajeErrorBackend, obtenerEquiposAsync } from '../api/equiposApi'
 import type { Equipo } from '../types/equipo.types'
 import { CrearEquipoForm } from './CrearEquipoForm'
+import { EditarEquipoForm } from './EditarEquipoForm'
 import { EquipoCard } from './EquipoCard'
 
 export function CatalogoEquiposView() {
@@ -10,6 +11,7 @@ export function CatalogoEquiposView() {
   const [errorCarga, setErrorCarga] = useState<string | null>(null)
   const [busqueda, setBusqueda] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [equipoAEditar, setEquipoAEditar] = useState<Equipo | null>(null)
   const [equipoAEliminar, setEquipoAEliminar] = useState<Equipo | null>(null)
   const [eliminandoId, setEliminandoId] = useState<number | null>(null)
   const [errorOperacion, setErrorOperacion] = useState<string | null>(null)
@@ -36,6 +38,7 @@ export function CatalogoEquiposView() {
     equipo.nombre.toLowerCase().includes(busqueda.trim().toLowerCase()),
   )
   const ocupado = eliminandoId !== null
+  const formularioAbierto = mostrarFormulario || equipoAEditar !== null
 
   function actualizarCatalogo() {
     setCargando(true)
@@ -52,6 +55,13 @@ export function CatalogoEquiposView() {
     // Mostrar el registro recién creado aunque no coincida con la búsqueda anterior.
     setBusqueda('')
     setMensaje(`Se registró ${equipo.nombre}.`)
+  }
+
+  function manejarEquipoActualizado(equipo: Equipo) {
+    setEquipos((actuales) => actuales.map((actual) => actual.id === equipo.id ? equipo : actual))
+    setEquipoAEditar(null)
+    setBusqueda('')
+    setMensaje(`Se actualizó ${equipo.nombre}.`)
   }
 
   async function confirmarEliminacion() {
@@ -81,7 +91,7 @@ export function CatalogoEquiposView() {
           <h1 className="text-3xl font-bold tracking-tight">Catálogo de equipos</h1>
           <p className="mt-2 text-sm text-slate-500">Lo que necesitas para tu próxima gran idea.</p>
         </div>
-        {!mostrarFormulario && (
+        {!formularioAbierto && (
           <button type="button" disabled={cargando || !!errorCarga || ocupado}
             onClick={() => { setMostrarFormulario(true); setEquipoAEliminar(null); setErrorOperacion(null); setMensaje('') }}
             className="flex items-center gap-2 self-start rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-white hover:bg-brand disabled:cursor-not-allowed disabled:opacity-50 sm:self-auto">
@@ -102,11 +112,15 @@ export function CatalogoEquiposView() {
       </section>
 
       {mostrarFormulario && <CrearEquipoForm onEquipoCreado={manejarEquipoCreado} onCancelar={() => setMostrarFormulario(false)} />}
+      {equipoAEditar && (
+        <EditarEquipoForm key={equipoAEditar.id} equipo={equipoAEditar}
+          onEquipoActualizado={manejarEquipoActualizado} onCancelar={() => setEquipoAEditar(null)} />
+      )}
 
       <section aria-labelledby="listado" aria-busy={cargando}>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 id="listado" className="text-lg font-bold tracking-tight">Explora los equipos</h2>
-          <button type="button" onClick={actualizarCatalogo} disabled={cargando || ocupado || mostrarFormulario}
+          <button type="button" onClick={actualizarCatalogo} disabled={cargando || ocupado || formularioAbierto}
             className="rounded-lg px-3 py-2 text-xs font-semibold text-brand hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50">Actualizar catálogo</button>
         </div>
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -148,7 +162,8 @@ export function CatalogoEquiposView() {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {equiposFiltrados.map((equipo) => (
               <EquipoCard key={equipo.id} {...equipo} eliminando={eliminandoId === equipo.id}
-                bloquearAcciones={ocupado || mostrarFormulario}
+                bloquearAcciones={ocupado || formularioAbierto}
+                onEditar={(seleccionado) => { setEquipoAEditar(seleccionado); setEquipoAEliminar(null); setErrorOperacion(null); setMensaje('') }}
                 onEliminar={(seleccionado) => { setEquipoAEliminar(seleccionado); setErrorOperacion(null); setMensaje('') }} />
             ))}
           </div>

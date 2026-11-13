@@ -1,6 +1,6 @@
 # Frontend · Préstamos de Equipo
 
-Catálogo conectado a la API .NET con React, TypeScript, React Compiler, Vite y Tailwind. Implementa las clases 10–17: consulta, búsqueda, creación y eliminación de equipos.
+Catálogo conectado a la API .NET con React, TypeScript, React Compiler, Vite y Tailwind. Implementa consulta, búsqueda, creación, edición y eliminación de equipos con los fundamentos de las clases 9 y 10–17.
 
 La [guía para principiantes](../GUIA_DEL_SISTEMA.md) explica frontend y backend, archivo por archivo, y relaciona el código con las clases.
 
@@ -21,10 +21,11 @@ Abre http://localhost:5173. VITE_API_BASE_URL debe apuntar a http://localhost:50
 - src/App.tsx: compone AppLayout y CatalogoEquiposView.
 - src/layouts/AppLayout.tsx: sidebar, cabecera, main y footer; recibe children.
 - src/features/equipos/types/equipo.types.ts: contratos de entrada y salida.
-- src/features/equipos/api/equiposApi.ts: Axios, GET/POST/DELETE y mensajes de ProblemDetails.
+- src/features/equipos/api/equiposApi.ts: Axios, GET/POST/PUT/DELETE y mensajes de ProblemDetails.
 - src/features/equipos/schemas/equipo.schema.ts: validación Zod de nombre, tipo y estado inicial.
 - src/features/equipos/components/CatalogoEquiposView.tsx: estado, efecto cancelable, búsqueda y callbacks.
 - src/features/equipos/components/CrearEquipoForm.tsx: React Hook Form, validación al escribir y envío.
+- src/features/equipos/components/EditarEquipoForm.tsx: formulario precargado y actualización de nombre, tipo y estado.
 - src/features/equipos/components/EquipoCard.tsx: datos del equipo y solicitud de confirmación de borrado.
 - src/features/equipos/components/EquipoIlustracion.tsx: SVG propios; ilustración genérica para otros tipos libres.
 - src/components/Icono.tsx: iconos compartidos.
@@ -36,7 +37,9 @@ Los datos provienen de la API, sin simulación ni registros iniciales creados au
 
 Eliminar solicita confirmación y conserva la tarjeta hasta recibir éxito. El backend rechaza equipos con historial (409). Los fallos se muestran con mensajes en español. Actualizar catálogo permite recargar tras una pérdida de conexión; no se reintentan automáticamente las escrituras.
 
-Usuarios, Préstamos y Solicitar préstamo siguen deshabilitados. No hay autenticación, router, PUT frontend ni sincronización automática con otros clientes.
+Editar precarga los datos del equipo y permite guardar mediante PUT. Un equipo Prestado conserva ese estado durante la edición de nombre/tipo. Los demás permiten Disponible/Mantenimiento. La API confirma con 204 y la vista reemplaza el equipo con un array nuevo. Cancelar conserva los datos previos. Los conflictos del servidor mantienen abierto el formulario para corregir o cancelar.
+
+Usuarios, Préstamos y Solicitar préstamo siguen deshabilitados. No hay autenticación, router ni sincronización automática con otros clientes.
 
 ## Verificar
 
