@@ -48,6 +48,6 @@ node tests/Test-Integracion.mjs
 
 El script requiere API/PostgreSQL activos y .env configurado. Carga los módulos reales mediante Vite, comprueba validaciones, CORS y GET/POST/DELETE; usa un prefijo único y limpia solo sus equipos temporales. El conflicto ProblemDetails se comprueba con una respuesta simulada; la regla real de historial está cubierta por Backend/tests/Test-Backend.ps1.
 
-Límite previo: typescript-eslint 8.72.1 no admite TypeScript 7.0.2; el lint sigue bloqueado por esa incompatibilidad. Build e integración se verifican por separado y no se declaran equivalentes al lint.
+Compatibilidad de herramientas resuelta. La dependencia `typescript` usa el paquete oficial `@typescript/typescript6` para proporcionar la API que necesita ESLint. El alias `@typescript/native` mantiene TypeScript 7.0.2 para el comando `tsc` del build. `pnpm run lint`, `pnpm run build` y `pnpm peers check` terminaron correctamente el 12 de noviembre de 2026. [Configuración recomendada por Microsoft](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0).
 
 Capturas: [escritorio](docs/catalogo-escritorio.png) · [móvil](docs/catalogo-movil.png).

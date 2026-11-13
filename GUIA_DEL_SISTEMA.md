@@ -516,7 +516,7 @@ pnpm run lint
 node tests/Test-Integracion.mjs
 ```
 
-El lint tenía una incompatibilidad previa entre TypeScript 7 y typescript-eslint; si se reproduce, no significa que el build o la API hayan fallado. Consulta las instrucciones del frontend para su estado registrado. El script de integración verifica los módulos reales y crea/elimina únicamente sus equipos identificados.
+La compatibilidad de ESLint se resolvió usando el paquete oficial `@typescript/typescript6` bajo el nombre `typescript` y el compilador TypeScript 7 bajo el alias `@typescript/native`. Así ESLint obtiene la API que necesita y el build ejecuta `tsc` de TypeScript 7. El lint y la compilación se comprobaron correctamente el 12 de noviembre de 2026. El script de integración verifica los módulos reales y crea/elimina únicamente sus equipos identificados. [Explicación oficial de Microsoft](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0).
 
 ## 15. Errores habituales y cómo investigarlos
 
